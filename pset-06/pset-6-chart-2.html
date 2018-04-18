@@ -15,9 +15,7 @@
 </head>
 <body>
 <div>
-	<h1 style="font-family:helvetica">Share of 311 Calls by Source in Each Boston Neighborhood</h1>
 	<svg width="960" height="600"></svg>
-	<p style="font-family:helvetica">Source: BOS:311 Data, Accessed from Analyze Boston </p>
 	<script>
 
 
@@ -41,7 +39,7 @@
 	var stack = d3.stack()
 	    .offset(d3.stackOffsetExpand);
 
-	d3.csv("neigh_311.csv", type, function(error, data) {
+	d3.csv("data/neigh_311.csv", type, function(error, data) {
 	  if (error) throw error;
 
 	  data.sort(function(a, b) { return b[data.columns[1]] / b.total - a[data.columns[1]] / a.total; });
