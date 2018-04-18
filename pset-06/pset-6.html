@@ -34,7 +34,7 @@
 	var z = d3.scaleOrdinal()
 		.range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
-	d3.csv("neigh_311.csv", function(d, i, columns) {
+	d3.csv("pset-06/neigh_311.csv", function(d, i, columns) {
 		for (i = 1, t = 0; i < columns.length; ++i) {
 			t += d[columns[i]] = +d[columns[i]];
 		}
@@ -144,7 +144,7 @@ fill: steelblue;
 	var stack = d3.stack()
 	    .offset(d3.stackOffsetExpand);
 
-	d3.csv("neigh_311.csv", type, function(error, data) {
+	d3.csv("pset-06/neigh_311.csv", type, function(error, data) {
 	  if (error) throw error;
 
 	  data.sort(function(a, b) { return b[data.columns[1]] / b.total - a[data.columns[1]] / a.total; });
