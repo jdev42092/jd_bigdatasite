@@ -206,7 +206,7 @@
 			// .attr("stroke", "#333")
 
 			// loading nemo data for now.
-		d3.csv("Storms_311_skylar.csv", function(error, storm311) {points2.selectAll("circle")
+		d3.csv("Storms_311_bombo.csv", function(error, storm311) {points2.selectAll("circle")
 			.data(storm311)
 			.enter()
 			.append("circle")
@@ -222,7 +222,7 @@
 				.style("font-size", "16px")
 			  .style("font-weight", "bold")
 				.style("font-family", "Consolas")
-        .text("311 Requests During Week of Storm Event");
+        .text("311 Requests During Week of Bombogenesis Storm Event");
 
 		var tooltip = d3.select("body")
 	    .append("div")
