@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://d3js.org/d3.v4.min.js" charset = "utf-8"></script>
+  <title>NORMALISED BAR CHART</title>
+</head>
+
+<body>
+
+<style>
+ .bar {
+   fill: steelblue;
+   }
+ .axis path {
+   display: none;
+   }
+ </style>
+
+ <svg width="960" height="600"></svg>
+ <script>
+ var neigh_311 = [];
+
+ var chart = d3.select("svg"),
+   margin = {top: 20, right: 120, bottom: 150, left: 40},
+   width = +chart.attr("width") - margin.left - margin.right,
+   height = +chart.attr("height") - margin.top - margin.bottom,
+   g = chart.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+ var x = d3.scaleBand()
+     .rangeRound([0, width])
+     .paddingInner(0.05)
+     .align(0.1);
+
+// var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+ var y = d3.scaleLinear()
+     .rangeRound([height, 50]);
+
+
+ var z = d3.scaleOrdinal()
+     .range(["#1B4079", "#7F9C96", "#CBDF90"]);
+
+ var stack = d3.stack()
+     .offset(d3.stackOffsetExpand);
+
+    //  d3.csv("311_Data_By_Type.csv", type, function(error, neigh_311) {
+    //    if (error) throw error;
+
+ d3.csv("311_Data_By_Type.csv", function(error, neigh_311) {
+   if (error) throw error;
+
+ neigh_311.sort(function(a, b) { return b[neigh_311.columns[2]] / b.total_calls - a[neigh_311.columns[2]] / a.total_calls; });
+
+ x.domain(neigh_311.map(function(d) { return d.neighborhood; }));
+ z.domain(neigh_311.columns.slice(2,5));
+
+ // .text(d.properties.Name + ": " + (tweets[d.properties.Name]).toFixed(2) + "%");
+ // })
+
+ var serie = g.selectAll(".serie")
+   .data(stack.keys(neigh_311.columns.slice(2,5))(neigh_311))
+   .enter().append("g")
+     .attr("class", "serie")
+     .attr("fill", function(d) { return z(d.key); })
+    //  .on("mouseover", function(d) {tooltip.style("visibility", "visible").transition().duration(500);})
+     .on("mouseover", function(d){
+       var xPosition = d3.mouse(this)[0] - 5;
+       var yPosition = d3.mouse(this)[1] - 5;
+       tooltip.text(d.key + ":" + "%")
+         .style("left", (d3.event.pageX) + "px")
+         .style("top", (d3.event.pageY - 28) + "px")
+         .style("visibility", "visible")
+         .transition()
+         .duration(500);
+       })
+     .on("mouseout", function(d){
+       tooltip.style("visibility", "hidden")
+     });
+
+ serie.selectAll("rect")
+   .data(function(d) { return d; })
+   .enter().append("rect")
+     .attr("x", function(d) { return x(d.data.neighborhood); })
+     .attr("y", function(d) { return y(d[1]); })
+     .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+     .attr("width", x.bandwidth());
+
+ g.append("g")
+     .attr("class", "axis axis--x")
+     .attr("transform", "translate(0," + height + ")")
+     .call(d3.axisBottom(x))
+     .selectAll("text")
+       .style("text-anchor", "end")
+       .attr("dx", "-.8em")
+       .attr("dy", ".15em")
+       .attr("transform", "rotate(-65)");;
+
+   g.append("g")
+       .attr("class", "axis axis--y")
+       .call(d3.axisLeft(y).ticks(10, "%"));
+
+   g.append("text")
+   			.attr("x", (width / 2))
+   		  .attr("y", 20)
+   		  .attr("text-anchor", "middle")
+   		  .style("font-size", "16px")
+   		  .style("font-weight", "bold")
+   		  .text("311 Requests Across Boston Neighbourhoods By Type");
+
+   var legend = serie.append("g")
+       .attr("class", "legend")
+       .attr("transform", function(d) { var d = d[d.length - 1]; console.log(d); return "translate(" + (x(d.data.neighborhood) + x.bandwidth()) + "," + ((y(d[0]) + y(d[1])) / 2) + ")"; });
+
+   legend.append("line")
+       .attr("x1", -6)
+       .attr("x2", 6)
+       .attr("stroke", "#000");
+
+   legend.append("text")
+       .attr("x", 9)
+       .attr("dy", "0.35em")
+       .attr("fill", "#000")
+       .style("font", "10px sans-serif")
+       .text(function(d) { return d.key; });
+     });
+
+   var tooltip = d3.select("body")
+     .append("div")
+     .style("position", "absolute")
+     .style("font-family", "'Open Sans', sans-serif")
+     .style("font-size", "12px")
+     .style("font-weight", "bold")
+     .style("z-index", "10")
+     .style("visibility", "hidden")
+     .style("background-color", "white")
+     .style("opacity", "0.7")
+     .style("padding", "5px");
+
+  // var tooltip = svg.append("g")
+  //   .attr("class", "tooltip")
+  //   .style("display", "none");
+  //
+  // tooltip.append("rect")
+  //   .attr("width", 60)
+  //   .attr("height", 20)
+  //   .attr("fill", "white")
+  //   .style("opacity", 0.5);
+  //
+  // tooltip.append("text")
+  //   .attr("x", 30)
+  //   .attr("dy", "1.2em")
+  //   .style("text-anchor", "middle")
+  //   .attr("font-size", "12px")
+  //   .attr("font-weight", "bold");
+
+  //  function type(d, i, columns) {
+  //    for (i = 1, t = 0; i < columns.length; ++i) {t += d[columns[i]] = +d[columns[i]];}
+  //    d.total = t;
+  //    return d;
+  //  }
+
+   </script>
+
+ </body>
+ </html>
