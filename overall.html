@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<title>Overall 311 Map</title>
+	<link rel="stylesheet" href= "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+	<script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src="http://d3js.org/topojson.v1.min.js"></script>
+	<script src="http://code.jquery.com/jquery.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+  <!-- <script src="https://d3js.org/d3-queue.v2.min.js"></script> -->
+
+</head>
+
+<style>
+.neighborhoods {
+  stroke: #fff;
+	stroke-width: 2px;
+	fill: #c7e2d3;
+}
+
+.incidents {
+  fill: #011638;
+  opacity: 0.7;
+	stroke-opacity: 0;
+    }
+
+.hover {
+  stroke-width: 2px;
+  opacity: 0.5;
+}
+
+
+</style>
+
+<body>
+
+  <div class="row">
+    <div class="col-md-6" id="map1"></div>
+    <div class="col-md-6" id="map2"></div>
+  </div>
+
+	<script>
+  // Width and Height of the whole visualization
+
+  var width = 650,
+      height = 700;
+
+  // var neigh = svg.append("g");
+  // var storm311 = svg.append("g");
+
+  var projection = d3.geoAlbers()
+        .scale( 190000 )
+        .rotate( [71.057,0] )
+        .center( [0, 42.313] )
+        .translate( [width/2,height/2] );
+
+  var path = d3.geoPath()
+          .projection(projection);
+					//
+					// var chart1 = d3.select("svg"),
+					//     margin = {top: 20, right: 20, bottom: 150, left: 40},
+					//     width = +chart1.attr("width") - margin.left - margin.right,
+					//     height = +chart1.attr("height") - margin.top - margin.bottom,
+					//     g = chart1.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+					//
+
+  var map1 = d3.select("#map1").append("svg")
+							.attr("width", width)
+							.attr("height", height)
+							.attr("x", 50)
+							.attr("y", 20)
+							.attr("align", "center");
+
+  var map2 = d3.select("#map2").append("svg")
+              .attr("width", width)
+              .attr("height", height)
+							.attr("x", 50)
+							.attr("y", 20)
+							.attr("align", "center");
+
+	var paths1 = map1.append("g").attr("class", "neighborhoods");
+	var points1 = map1.append("g").attr("class", "incidents");
+	var paths2 = map2.append("g").attr("class", "neighborhoods");
+	var points2 = map2.append("g").attr("class", "incidents");
+
+//HOW TO DO COLOUR CHANGE AND TOOLTIP ON MOUSEOVER/MOUSEOUT???
+
+	d3.json("boston_neigh2.json", function(error, neigh) { paths1.selectAll("path")
+			.data(topojson.feature(neigh, neigh.objects.collection).features)
+			.enter()
+			.append("path")
+			.attr("d", path)
+			.on("mouseover", function(d) {
+				return tooltip.style("visibility", "visible").text(d.properties.Name);
+							d3.select(this).attr('fill', '#c7e2d3').attr('fill-opacity', 0.5);
+				})
+			.on("mousemove", function(d, i){
+				return tooltip.style("top", (d3.event.pageY-10)+"px")
+						.style("left",(d3.event.pageX+10)+"px")
+						.text(d.properties.Name);
+						d3.select(this).attr('fill', '#c7e2d3').attr('fill-opacity', 0.5);
+				 })
+			.on("mouseout", function(d, i){
+				return tooltip.style("visibility", "hidden");
+						d3.select(this).attr('fill', '#c7e2d3').attr('fill-opacity', 1);
+				});
+
+			//FOR COLOUR CHANGE
+			// .on('mouseover', function(d, i) {
+			// 		d3.select(this)
+			// 			.transition()
+			// 			.duration(100)
+			// 			// .attr('r', 20)
+			// 			.attr('fill', '#c7e2d3')
+			// 			.attr('fill-opacity', 0.5);
+			// 		})
+			// .on('mouseout', function(d, i) {
+			// 		d3.select(this)
+			// 			.transition()
+			// 			.duration(100)
+			// 			// .attr('r', 10)
+			// 			.attr('fill', '#c7e2d3')
+			// 			.attr('fill-opacity', 1);
+			// 		});
+			// .attr("fill", "#ccc")
+			// .attr("fill-opacity", 0)
+			// .attr("stroke", "#333")
+
+		d3.csv("Storms_311_normal.csv", function(error, norm311) {points1.selectAll("circle")
+			.data(norm311)
+			.enter()
+			.append("circle")
+			.attr("cx", function(d) {return projection([d.Longitude, d.Latitude])[0]; })
+			.attr("cy", function(d) {return projection([d.Longitude, d.Latitude])[1]; })
+			.attr("r", 2);
+		});
+
+		map1.append("text")
+				.attr("x", (width / 2))
+				.attr("y", 40)
+				.attr("text-anchor", "middle")
+				.style("font-size", "16px")
+				.style("font-weight", "bold")
+				.style("font-family", "Consolas")
+				.text("311 Requests During Normal Winter Week");
+
+		var tooltip = d3.select("body")
+	    .append("div")
+	    .style("position", "absolute")
+	    .style("font-family", "'Open Sans', sans-serif")
+	    .style("font-size", "12px")
+			.style("font-weight", "bold")
+	    .style("z-index", "10")
+	    .style("visibility", "hidden")
+	    .style("background-color", "white")
+	    .style("opacity", "0.7")
+	    .style("padding", "5px");
+	});
+
+//draw storm map
+	d3.json("boston_neigh2.json", function(error, neigh) { paths2.selectAll("path")
+      .data(topojson.feature(neigh, neigh.objects.collection).features)
+    	.enter()
+      .append("path")
+      .attr("d", path)
+			.on("mouseover", function(d) {
+				return tooltip.style("visibility", "visible")
+								.text(d.properties.Name)
+								.transition()
+								.duration(200);
+				})
+			.on("mousemove", function(d){
+				return tooltip.style("top", (d3.event.pageY-10)+"px")
+						.style("left",(d3.event.pageX+10)+"px")
+						.text(d.properties.Name)
+						.transition()
+						.duration(500);
+				 })
+			.on("mouseout", function(d){
+				return tooltip.style("visibility", "hidden")
+								.transition()
+								.duration(500);
+				});
+
+			// .on('mouseover', function(d, i) {
+			// 		d3.select(this)
+			// 			.transition()
+			// 			.duration(100)
+			// 			// .attr('r', 20)
+			// 			.attr('fill', '#c7e2d3')
+			// 			.attr('fill-opacity', 0.5);
+			// 		})
+			// .on('mouseout', function(d, i) {
+			// 		d3.select(this)
+			// 			.transition()
+			// 			.duration(100)
+			// 			// .attr('r', 10)
+			// 			.attr('fill', '#c7e2d3')
+			// 			.attr('fill-opacity', 1);
+			// 		});
+			// .attr("fill", "#ccc")
+			// .attr("fill-opacity", 0)
+			// .attr("stroke", "#333")
+
+			// loading nemo data for now.
+		d3.csv("Storms_311_bombo.csv", function(error, storm311) {points2.selectAll("circle")
+			.data(storm311)
+			.enter()
+			.append("circle")
+			.attr("cx", function(d) {return projection([d.Longitude, d.Latitude])[0]; })
+			.attr("cy", function(d) {return projection([d.Longitude, d.Latitude])[1]; })
+      .attr("r", 2);
+  	});
+
+		map2.append("text")
+        .attr("x", (width / 2))
+        .attr("y", 40)
+        .attr("text-anchor", "middle")
+				.style("font-size", "16px")
+			  .style("font-weight", "bold")
+				.style("font-family", "Consolas")
+        .text("311 Requests During Week of Bombogenesis Storm Event");
+
+		var tooltip = d3.select("body")
+	    .append("div")
+	    .style("position", "absolute")
+	    .style("font-family", "'Open Sans', sans-serif")
+	    .style("font-size", "12px")
+			.style("font-weight", "bold")
+	    .style("z-index", "10")
+	    .style("visibility", "hidden")
+	    .style("background-color", "white")
+	    .style("opacity", "0.7")
+	    .style("padding", "5px");
+	});
+
+// ORIGINAL
+	// d3.queue()
+	// 		.defer(d3.csv, "Storms_311.csv") // Load storms 311 csV
+  //     .defer(d3.json, "boston_neigh2.json") // Load boston neigh
+  //     .await(ready); // Run 'ready' when JSONs are loaded
+	//
+	// function ready(error, storm311, neigh) {
+  //     if (error) throw error;
+	//
+	// 		paths.selectAll("path")
+	// 			.data(topojson.feature(neigh, neigh.objects.collection).features) // Bind TopoJSON data elements
+	// 			.enter().append("path")
+	// 			.attr("d", path)
+	// 			.attr("fill", "#ccc")
+	// 			// .attr("fill-opacity", 0)
+	// 			.attr("stroke", "#333");
+	//
+	// 		// load and display the points
+	// 		points.selectAll("circle")
+	// 			.data(storm311)
+	// 			.enter()
+	// 			.append("circle")
+	// 			.attr("cx", function(d) {return projection([d.Longitude, d.Latitude])[0]; })
+	// 			.attr("cy", function(d) {return projection([d.Longitude, d.Latitude])[1]; })
+	// 			.attr("r", 0.5);
+	// 		};
+
+	</script>
+</body>
+</html>
