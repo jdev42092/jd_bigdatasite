@@ -62,7 +62,7 @@ d3.json("data/allstorms_fd.json", function(error, graph) {
       .on("mouseover", function(d){
         var xPosition = d3.mouse(this)[0] - 5;
         var yPosition = d3.mouse(this)[1] - 5;
-        tooltip.text(d.id)
+        tooltip.text(d.id + ", " + d.group)
           .style("left", (d3.event.pageX) + "px")
           .style("top", (d3.event.pageY - 28) + "px")
           .style("visibility", "visible")
@@ -98,17 +98,20 @@ d3.json("data/allstorms_fd.json", function(error, graph) {
 
 
 
+// Next Steps: Incorporate mouse over highlighting, legend
+  // node.on("mouseover", function(d) {
+  // 	set_highlight(d);
+  // 	})
+  //   .on("mousedown", function(d) { d3.event.stopPropagation();
+  //   	focus_node = d;
+  // 	set_focus(d)
+  // 	if (highlight_node === null) set_highlight(d)})
+  //   .on("mouseout", function(d) {
+  // 		exit_highlight();
+  //   });
 
-  node.on("mouseover", function(d) {
-  	set_highlight(d);
-  	})
-    .on("mousedown", function(d) { d3.event.stopPropagation();
-    	focus_node = d;
-  	set_focus(d)
-  	if (highlight_node === null) set_highlight(d)})
-    .on("mouseout", function(d) {
-  		exit_highlight();
-    });
+
+
   // var legend = svg.append("g")
   //     .attr("font-family", "sans-serif")
   //     .attr("font-size", 10)
