@@ -15,6 +15,18 @@ body {
   stroke-width: 1.5px;
 }
 
+.tooltip {
+  position: absolute;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 10;
+  visibility: hidden;
+  background-color: white;
+  opacity: 0.7;
+  padding: 3px;
+}
+
 </style>
 <body>
 <h1>Twitter Interactions Between Key Users During Storms</h1>
@@ -31,7 +43,8 @@ var svg = d3.select("svg"),
 
 // var color = d3.scaleOrdinal(d3.schemeCategory20);
 var color = d3.scaleOrdinal()
-      .range(['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d'])
+      .domain(['weather','local_news','local_gov','state_gov','util'])
+      .range(['#3B379C','#5A5A69','#5E95CF','#D5B696','#9C5C37'])
 
 var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(function(d) {return 50;}))
@@ -73,6 +86,7 @@ d3.json("data/allstorms_focused_fd.json", function(error, graph) {
         tooltip.style("visibility", "hidden")
           });
 
+
   // node.append("title")
   //     .text(function(d) { return d.id; });
 
@@ -93,45 +107,8 @@ d3.json("data/allstorms_focused_fd.json", function(error, graph) {
     node
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
+
   }
-
-
-
-
-// Next Steps: Incorporate mouse over highlighting, legend
-  // node.on("mouseover", function(d) {
-  // 	set_highlight(d);
-  // 	})
-  //   .on("mousedown", function(d) { d3.event.stopPropagation();
-  //   	focus_node = d;
-  // 	set_focus(d)
-  // 	if (highlight_node === null) set_highlight(d)})
-  //   .on("mouseout", function(d) {
-  // 		exit_highlight();
-  //   });
-
-
-
-  // var legend = svg.append("g")
-  //     .attr("font-family", "sans-serif")
-  //     .attr("font-size", 10)
-  //     .attr("text-anchor", "end")
-  //   .selectAll("g")
-  //   .data(graph.nodes.group)
-  //   .enter().append("g")
-  //     .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-  //
-  // legend.append("rect")
-  //     .attr("x", width - 19)
-  //     .attr("width", 19)
-  //     .attr("height", 19)
-  //     .attr("fill", function(d) {return color(d.group);});
-  //
-  // legend.append("text")
-  //     .attr("x", width - 24)
-  //     .attr("y", 9.5)
-  //     .attr("dy", "0.32em")
-  //     .text(function(d) { return d; });
 
 });
 
