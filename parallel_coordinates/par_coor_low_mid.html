@@ -24,7 +24,7 @@ svg {
 
 var margin = {top: 30, right: 10, bottom: 10, left: 10},
     width = 700 - margin.left - margin.right,
-    height = 200 - margin.top - margin.bottom;
+    height = 400 - margin.top - margin.bottom;
 
 var x = d3.scale.ordinal().rangePoints([0, width], 1),
     y = d3.scale.linear().range([height, 0]);
@@ -61,7 +61,18 @@ d3.csv("data/par_coor_low_mid.csv", function(error, high) {
       .attr("y1", function(d) { return y(d.mentions); })
       .attr("x2", function(d) { return x('replies'); })
       .attr("y2", function(d) { return y(d.replies); })
-      .attr("stroke", function(d) { return color(d.group); });
+      .attr("stroke", function(d) { return color(d.group); })
+      .attr("stroke-width",1.5)
+      .on("mouseover", function(d){
+        var xPosition = d3.mouse(this)[0] - 5;
+        var yPosition = d3.mouse(this)[1] - 5;
+        tooltip.text(d.user + ", " + d.group)
+          .style("left", (d3.event.pageX) + "px")
+          .style("top", (d3.event.pageY - 28) + "px")
+          .style("visibility", "visible")
+          .transition()
+          .duration(500);
+        });
 
   // Add a group element for each dimension.
   var g = svg.selectAll(".dimension")
@@ -81,5 +92,16 @@ d3.csv("data/par_coor_low_mid.csv", function(error, high) {
 
  });
 
+ var tooltip = d3.select("body")
+   .append("div")
+   .style("position", "absolute")
+   .style("font-family", "'Open Sans', sans-serif")
+   .style("font-size", "12px")
+   .style("font-weight", "bold")
+   .style("z-index", "10")
+   .style("visibility", "hidden")
+   .style("background-color", "white")
+   .style("opacity", "0.7")
+   .style("padding", "3px");
 
 </script>
