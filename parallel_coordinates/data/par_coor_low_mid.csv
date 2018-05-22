@@ -1,0 +1,16 @@
+,user,mentions,replies,group,max,ratio
+2,bos311,51,4,local_gov,51,0.0784313725490196
+6,bostondotcom,76,12,local_news,76,0.15789473684210525
+12,bostonschools,54,3,local_gov,54,0.05555555555555555
+13,breakingstorm,61,1,weather,61,0.01639344262295082
+15,clamberton7,57,15,weather,57,0.2631578947368421
+16,davidbagleywx,4,63,weather,63,15.75
+19,growingwisdom,75,32,weather,75,0.4266666666666667
+23,kevinboston25,57,14,weather,57,0.24561403508771928
+25,massdot,95,9,state_gov,95,0.09473684210526316
+27,massgov,50,62,state_gov,62,1.24
+32,mbta_cr,19,64,state_gov,64,3.3684210526315788
+34,nationalgridus,56,5,util,56,0.08928571428571429
+38,nwsgray,52,1,weather,52,0.019230769230769232
+41,sarahwroblewski,50,5,weather,50,0.1
+44,tjdelsanto,59,37,weather,59,0.6271186440677966

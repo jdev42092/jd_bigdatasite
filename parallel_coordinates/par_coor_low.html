@@ -42,7 +42,7 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.csv("data/par_coor_high.csv", function(error, high) {
+d3.csv("data/par_coor_low.csv", function(error, high) {
   tweets = high.forEach(function(d) {
       mentions = +d.mentions;
       replies = +d.replies;

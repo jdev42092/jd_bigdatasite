@@ -93,7 +93,7 @@ d3.csv("data/cars.csv", function(error, cars) {
   // Add an axis and title.
   g.append("g")
       .attr("class", "axis")
-      .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
+      .each(function(d) { console.log(y[d]); d3.select(this).call(axis.scale(y[d])); })
     .append("text")
       .style("text-anchor", "middle")
       .attr("y", -9)
