@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://d3js.org/d3.v4.min.js" charset = "utf-8"></script>
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+  <title>311 REQUESTS BY TYPE (PERCENT AND VOL)</title>
+</head>
+
+<body>
+  <!-- <div class="container">
+ 		<div id="norm"></div>
+  </div>
+  <div class="container">
+    <div id="stacked" ></div>
+  </div> -->
+
+<style>
+ .bar {
+   fill: steelblue;
+   }
+
+ .tooltip{
+ 	text-anchor: middle;
+ 	font-family: sans-serif;
+ 	font-size: 12px;
+ 	font-weight: bold;
+ 	fill:green;
+  }
+
+ /*.node.active {
+   fill: blue;
+  }*/
+
+ .axis path,
+ .axis line {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+  }
+
+.axis text {
+  font-family: sans-serif;
+  font-size: 10px;
+  fill: #000;
+  }
+
+.legend {
+   padding: 5px;
+   font: 10px sans-serif;
+   box-shadow: 2px 2px 1px #888;
+  }
+
+.hover {
+   stroke-width: 2px;
+   opacity: 0.5;
+    }
+
+ </style>
+
+ <svg width="400" height="400" id="norm"></svg>
+
+ <script>
+
+ // var width = 960,
+ //    height = 600;
+
+ var neigh_311 = [];
+
+ var margin = {top: 40, right: 120, bottom: 40, left: 60};
+
+ var width = 350 - margin.left - margin.right
+ var height = 400 - margin.top - margin.bottom
+
+ var norm = d3.select("#norm").append("svg"),
+   normg = norm.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+//LOAD THE CSV - draw normalised bar chart
+d3.csv("../data/311_Data_By_AverageResponseTimeandCounts_By_Skylar.csv", function(error, neigh_311) {
+    // dataset = neigh_311;
+    if (error) throw error;
+
+    var stack = d3.stack()
+       .offset(d3.stackOffsetExpand);
+
+// set up scales
+    var x = d3.scaleBand()
+        .rangeRound([0, width])
+        .paddingInner(0.05)
+        .align(0.1);
+
+    var y = d3.scaleLinear()
+        .rangeRound([height, 50]);
+
+    var z = d3.scaleOrdinal()
+        .range(["#d5b696", "#134ead"]);
+
+// set up axis
+    var xAxis = d3.axisBottom(x);
+
+    var yAxis = d3.axisLeft(y)
+        .ticks(10, "%");
+
+
+    neigh_311.sort(function(a, b) { return b[neigh_311.columns[2]] / b.total_calls - a[neigh_311.columns[2]] / a.total_calls; });
+
+    x.domain(neigh_311.map(function(d) { return d.group1_num; }));
+    z.domain(neigh_311.columns.slice(2,4));
+
+    var serie = normg.selectAll("serie")
+      .data(stack.keys(neigh_311.columns.slice(2,4))(neigh_311))
+      .enter().append("g")
+      // .attr("class", "serie")
+      .attr("fill", function(d) { return z(d.key); });
+
+
+    var rect = serie.selectAll("rect")
+      .data(function(d) { return d; })
+      .enter().append("rect")
+        .attr("x", function(d) { return x(d.data.group1_num); })
+        .attr("y", function(d) { return y(d[1]); })
+        .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+        .attr("width", x.bandwidth())
+        // .transition()
+  	    //  .duration(function(d,i){ return 500 * i; })
+        //  .ease(d3.easeLinear)
+				.style("fill-opacity",1);
+
+    var xAxis = normg.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x))
+            .selectAll("text")
+            .style("text-anchor", "middle")
+            .attr("y", 15)
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em");
+            // .attr("transform", "rotate(-65)");
+
+    var yAxis = normg.append("g")
+        .attr("class", "axis axis--y")
+        .call(d3.axisLeft(y).ticks(10, "%"));
+
+    normg.append("text")
+          .attr("class", "title")
+    			.attr("x", (width / 2))
+    		  .attr("y", 20)
+    		  .attr("text-anchor", "middle")
+    		  .style("font-size", "12px")
+    		  .style("font-weight", "bold")
+    		  .text("Skylar");
+					// .text("311 Requests Across Sorted Groups By Type for Winter Storm Skylar");
+
+    var normlegend = serie.append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d) { var d = d[d.length - 1]; return "translate(" + (x(d.data.group1_num) + x.bandwidth()) + "," + ((y(d[0]) + y(d[1])) / 2) + ")"; });
+
+    normlegend.append("line")
+        .attr("x1", -6)
+        .attr("x2", 6)
+        .attr("stroke", "#000");
+
+    normlegend.append("text")
+        .attr("x", 9)
+        .attr("dy", "0.35em")
+        .attr("fill", "#000")
+        .style("font", "10px sans-serif")
+        .text(function(d) { return d.key; });
+
+    });
+
+
+
+</script>
+</body>
+</html>

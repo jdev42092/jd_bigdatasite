@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="https://d3js.org/d3-queue.v2.min.js"></script>
+<title>QUADRANT SCATTER</title>
+
+<style>
+body { font-family: Arial;}
+
+.axis, .axis path {
+  fill: none;
+  stroke: #000;
+}
+text {
+  stroke: none;
+  fill: #000;
+}
+.dot {
+  stroke: none
+}
+.tract {
+    /*fill:steelblue;*/
+    stroke: #fff; /*White*/
+    stroke-width: 1px;
+    opacity: 0.8;
+  }
+.hover {
+    stroke-width: 2px;
+    opacity: 0.5;
+  }
+</style>
+
+<body>
+  <svg id="scatter" width="560" height="500"></svg>
+  <svg id="map" width="560" height="500"></svg>
+<script>
+
+// draw scatterplot
+d3.csv("../data/scattertracts_with_res_income.csv", function(error, res) {
+  if (error) throw error;
+  var quad = d3.select("#scatter"),
+      margin = {top: 10, right: 20, bottom: 20, left: 50},
+      width = +quad.attr("width"),
+      height = +quad.attr("height"),
+      domainwidth = width - margin.left - margin.right,
+      domainheight = height - margin.top - margin.bottom;
+  var x = d3.scaleLinear()
+      .range([20, domainwidth]);
+  var y = d3.scaleLinear()
+      .range([domainheight, 40]);
+
+  x.domain([14500.0, 142688.0]);
+
+  y.domain([0, d3.max(res, function(d) { return d.percent_res; })]);
+
+  var quadg = quad.append("g")
+      .attr("width", domainwidth)
+      .attr("height", domainheight - margin.top - margin.bottom)
+  		.attr("transform", "translate(" + margin.top + "," + margin.top + ")");
+
+  res.forEach(function(d) {
+      d.percent_res = +d.percent_res;
+      d.median_inc = +d.median_inc;
+    });
+
+  //draw points
+  quadg.selectAll("circle")
+      .data(res)
+    .enter().append("circle")
+      .attr("class", "dot")
+      .attr("r", 7)
+      .attr("cx", function(d) { return x(d.median_inc); })
+      .attr("cy", function(d) { return y(d.percent_res); })
+    	.style("fill", function(d) {
+          if (d.percent_res >= 0.603047 && d.median_inc <= 55238) {return "#d5b696"} // Top Left - GROUP 2
+          else if (d.percent_res >= 0.603047 && d.median_inc >= 55238) {return "#5a5a69"} // Top Right - GROUP 1
+          else if (d.percent_res <= 0.603047 && d.median_inc >= 55238) {return "#134ead"} // Bottom Left - GROUP 4
+          else { return "#74a9e0" } //Bottom Right - GROUP 3
+          })
+      .style("fill-opacity", 0.8)
+      .attr("class", function (d) { return d.geoid2;})
+      //The mouseover functions work just like the ones in the map, they add "hover" class to all matching elements
+      .on("mouseover", function(d) {
+        // d3.select(this).classed("hover",true);
+        d3.selectAll("." + d.geoid2).classed("hover",true);
+      })
+      .on("mouseout", function(d) {
+      // d3.select(this).classed("hover",false);
+      d3.selectAll("." + d.geoid2).classed("hover", false);
+    });
+
+  quadg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + y(0.603047) + ")")
+      .call(d3.axisBottom(x).ticks(7))
+      .append("text")
+        .attr("x", domainwidth+60)
+        .attr("y", 0)
+        .attr("dy", "0.32em")
+        .attr("text-anchor", "end")
+        .attr("font-size", "8px")
+        .attr("fill", "#000")
+        .text("Median Income");
+
+  quadg.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(" + x(55238) + ", 0)")
+      .call(d3.axisLeft(y).ticks(7))
+      .append("text")
+        // .attr("x", y(1.0))
+        .attr("y", 30)
+        .attr("dy", "0.32em")
+        .attr("text-anchor", "end")
+        .attr("font-size", "8px")
+        .attr("fill", "#000")
+        .text("% residential");
+
+  quadg.append("text")
+      .attr("class", "title")
+			.attr("x", (width / 2))
+		  .attr("y", 20)
+		  .attr("text-anchor", "middle")
+		  .style("font-size", "16px")
+		  .style("font-weight", "bold")
+		  .text("Census Tracts Sorted By Land Use & Income");
+
+});
+
+// draw map
+var width = 620,
+    height = 600;
+
+var m = {top: 10, right: 10, bottom: 0, left: 10};
+
+  var albersProjection = d3.geoAlbers()
+    .scale( 160000 )
+    .rotate( [71.057,0] )
+    .center( [0, 42.313] )
+    .translate( [width/2,height/2-40] );
+
+  var path = d3.geoPath()
+      .projection(albersProjection);
+
+  var censusmap = d3.select("#map").append("svg")
+      .attr("width", width-m.right-m.left)
+      .attr("height", height - m.top - m.bottom);
+
+  // var colors = {
+  // 	  0 : ["1","#f4bb2c"],
+  // 		1 : ["2","#f2e96f"],
+  //     2 : ["3", "#1d51a5"],
+  //     3 : ["4", "#417fe2"]
+  // 			};
+
+  var color = d3.scaleOrdinal()
+      .domain([1, 2, 3, 4])
+      .range(["#5a5a69", "#d5b696", "#74a9e0", "#134ead", "#000"]);
+
+  var g = censusmap.append("g")
+      .attr("class", "key")
+      .attr("transform", "translate(0,40)");
+
+  var tooltip = d3.select("body")
+    .append("div")
+      .style("position", "absolute")
+      .style("font-family", "'Open Sans', sans-serif")
+      .style("font-size", "12px")
+      .style("z-index", "10")
+      .style("background-color", "white")
+      .style("padding", "5px")
+      .style("opacity", "0.7")
+      .style("visibility", "hidden");
+
+  d3.queue()
+    .defer(d3.json, "../data/BostonTracts.json") // Load census tracts
+    .defer(d3.csv, "../data/tracts_with_groupnums.csv") // tracts with group numbers
+    .await(ready); // Run 'ready' when JSONs are loaded
+
+  function ready(error, bostract, nums) {
+      if (error) throw error;
+
+      var tracts = {};
+      nums.forEach(function(d) {
+				// console.log((d.twit_count / d.tot_count) * 100)
+        tracts[d.geoid] = +d.group1_num; // Create property for each ID, give it value from rate
+      });
+
+      // var tractnos = {};
+      // nums.forEach(function(d) {
+      //     tractnos[d.id]= d.geoid2;
+      // });
+
+      censusmap.append("g")
+          .attr("class", "tracts")
+        .selectAll("path")
+          .data(topojson.feature(bostract, bostract.objects.bostontracts).features) // Bind TopoJSON data elements
+        .enter().append("path")
+          .attr("d", path)
+          .style("fill", function(d) {
+            return color(tracts[d.properties.GEOID]);
+            })
+          .style("stroke", "white")
+          .style("stroke-width", 0.3)
+          .style("fill-opacity", 0.9)
+          .attr("class", function(d) {return d.properties.geoid2; })
+          .on("mouseover", function(d) {
+            d3.selectAll("." + d.properties.geoid2).classed("hover",true);
+          })
+          .on("mouseout", function(d) {
+            d3.select(this).style("fill",function(d) { return color(tracts[d.properties.GEOID])});
+            d3.selectAll("." + d.properties.geoid2).classed("hover", false);
+          });
+          // .attr("class", function(d) { return d.properties.GEOID;
+          //   console.log(this.className);
+          // })
+          // This part adds the class "hover" to the state and its matching rectangle in the chart
+          // .on("mouseover", function(d) {
+          //   d3.selectAll("." + d.properties.GEOID).classed("hover",true);
+          // })
+          // .on("mouseout", function(d) {
+          //   d3.select(this).style("fill",function(d) { return color(tracts[d.properties.GEOID])});
+          //   d3.selectAll("." + d.properties.GEOID).classed("hover", false);
+          // });
+
+    };
+
+</script>
+</body>

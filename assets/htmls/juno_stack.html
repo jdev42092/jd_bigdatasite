@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://d3js.org/d3.v4.min.js" charset = "utf-8"></script>
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+  <title>311 REQUESTS BY TYPE (PERCENT AND VOL)</title>
+</head>
+
+<body>
+  <!-- <div class="container">
+ 		<div id="norm"></div>
+  </div>
+  <div class="container">
+    <div id="stacked" ></div>
+  </div> -->
+
+<style>
+ .bar {
+   fill: steelblue;
+   }
+
+ .tooltip{
+ 	text-anchor: middle;
+ 	font-family: sans-serif;
+ 	font-size: 12px;
+ 	font-weight: bold;
+ 	fill:green;
+  }
+
+ /*.node.active {
+   fill: blue;
+  }*/
+
+ .axis path,
+ .axis line {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+  }
+
+.axis text {
+  font-family: sans-serif;
+  font-size: 10px;
+  fill: #000;
+  }
+
+.legend {
+   padding: 5px;
+   font: 10px sans-serif;
+   box-shadow: 2px 2px 1px #888;
+  }
+
+.hover {
+   stroke-width: 2px;
+   opacity: 0.5;
+    }
+
+ </style>
+
+ <svg width="600" height="400" id="stacked"></svg>
+
+
+ <script>
+
+ // var width = 960,
+ //    height = 600;
+
+ var neigh_311 = [];
+
+ var margin = {top: 40, right: 120, bottom: 40, left: 60};
+
+ var width = 600 - margin.left - margin.right
+ var height = 400 - margin.top - margin.bottom
+
+ var norm = d3.select("#norm").append("svg"),
+   normg = norm.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+ var stacked = d3.select("#stacked").append("svg"),
+   stackedg = stacked.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// var colors = {
+// 	  0 : ["Analog","#7F9C96"],
+// 		1 : ["Digital","#CBDF90"]
+// 			};
+
+
+//LOAD THE CSV - draw normalised bar chart
+d3.csv("../data/311_Data_By_AverageResponseTimeandCounts_By_Juno.csv", function(error, neigh_311) {
+    // dataset = neigh_311;
+    if (error) throw error;
+
+    // DRAW STACKED BAR CHART
+          var keys = neigh_311.columns.slice(2,4);
+
+          var grouplist = ["Group 2", "Group 3", "Group 1", "Group 4"];
+
+          var xscale = d3.scaleBand()
+              .domain(grouplist)
+              .rangeRound([0, width])
+              .paddingInner(0.05)
+              .align(0.1);
+
+          var yscale = d3.scaleLinear()
+              .rangeRound([height, 10])
+              // .rangeRound([height-margin.bottom-margin.top, 0])
+              .domain([0, d3.max(neigh_311, function(d) {return +d.total_calls; })]).nice();
+
+          var zscale = d3.scaleOrdinal()
+              .domain(keys)
+              .range(["#d5b696", "#134ead"]);
+
+          var y_axis = d3.axisLeft(yscale)
+              .ticks(null, "s");
+
+            neigh_311.sort(function(a, b) { return b.total_calls - a.total_calls; });
+            // xscale.domain(all311.map(function(d) { return d.neighborhood; }));
+
+            // xscale.domain(neighlist);
+            // zscale.domain(keys);
+
+            var group = stackedg.selectAll("g")
+              .data(d3.stack().keys(keys)(neigh_311))
+              .enter().append("g")
+                .attr("fill", function(d) { return zscale(d.key); });
+
+            var bars = group.selectAll("rect")
+              .data(function(d) { return d; })
+              .enter().append("rect")
+                .attr("x", function(d) { return xscale(d.data.group1_num); })
+                .attr("y", function(d) { return yscale(d[1]); })
+                .attr("height", function(d) { return yscale(d[0]) - yscale(d[1]); })
+                .attr("width", xscale.bandwidth())
+                .style("fill-opacity", 1);
+                // .transition()
+                // .duration(function (d,i) {return 500 * i; })
+                // .ease(d3.easeLinear)
+                // .style("fill-opacity", 1)
+                //The next line assigns each rectangle a class that matches the neighborhood names above.
+              //   .attr("class", function (d) { return d.data.neigh2;})
+              //   //The mouseover functions work just like the ones in the map, they add "hover" class to all matching elements
+              //   .on("mouseover", function(d) {
+              //     //d3.select(this).classed("hover",true);
+              //     d3.selectAll("." + d.data.neigh2).classed("hover",true);
+              //   })
+              // .on("mouseout", function(d) {
+              //   //d3.select(this).classed("hover",false);
+              //   d3.selectAll("." + d.data.neigh2).classed("hover", false);
+              // });
+
+           var x_axis = stackedg.append("g")
+              .attr("class", "axis--x")
+              .attr("transform", "translate(0," + height + ")")
+              .call(d3.axisBottom(xscale))
+              .selectAll("text")
+                .style("text-anchor", "middle")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em")
+                .attr("y", 15);
+                // .attr("transform", "rotate(-65)");
+
+            stackedg.append("g")
+              .attr("class", "axis--y")
+              .call(y_axis);
+
+            stackedg.append("text")
+              .attr("x", 0-(height/2))
+              // .attr("y", yscale(yscale.ticks().pop()) + 0.5, 0-5)
+              .attr("y", 0-30)
+              .attr("dy", "0.3em")
+              .attr("fill", "#000")
+              .attr("font-weight", "bold")
+              .attr("text-anchor", "middle")
+              .attr("transform", "rotate(-90)")
+              .attr("font-size", "8 px")
+              .text("No. of 311 Requests");
+
+            // var y_axis = stackedg.append("g")
+            //     .attr("class", "axis--y")
+            //     .call(d3.axisLeft(yscale).ticks(null, "s"))
+            //     .append("text")
+            //       .attr("x", 0-(height/2))
+            //       // .attr("y", yscale(yscale.ticks().pop()) + 0.5, 0-5)
+            //       .attr("y", 0-30)
+            //       .attr("dy", "0.32em")
+            //       .attr("fill", "#000")
+            //       .attr("font-weight", "bold")
+            //       .attr("text-anchor", "middle")
+            //       .attr("transform", "rotate(-90)")
+            //       .text("No. of 311 Requests");
+
+            stackedg.append("text")
+                  .attr("class", "title")
+                  .attr("x", (width / 2))
+                  .attr("y", 0)
+                  .attr("text-anchor", "middle")
+                  .style("font-size", "12px")
+                  .style("font-weight", "bold")
+                  .text("Volume of 311 Requests Across Sorted Groups for Winter Storm Juno");
+
+            var stacklegend = group.append("g")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", 10)
+                .attr("text-anchor", "end")
+                .selectAll("g")
+                .data(keys.slice().reverse())
+                .enter().append("g")
+                .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+            stacklegend.append("rect")
+                .attr("x", width - 19)
+                .attr("y", 0-15)
+                .attr("width", 19)
+                .attr("height", 15)
+                .attr("fill", zscale);
+
+            stacklegend.append("text")
+                .attr("x", width - 24)
+                .attr("y", 0-4.5)
+                .attr("dy", "0.32em")
+                .attr("fill", "#000")
+                .text(function(d) { return d; });
+
+    });
+
+
+
+</script>
+</body>
+</html>
