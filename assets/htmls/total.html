@@ -45,7 +45,7 @@ function horizontalGroupedBarGraph(data) {
     return _.map(d.subgroups, function(g) { return g.subgroupLabel; });
   }));
   d3.keys(data[0]).filter(function(key) { return key !== "storm_event"; });
-  var margin = {top: 20, right: 20, bottom: 30, left: 85},
+  var margin = {top: 20, right: 20, bottom: 30, left: 40},
       width = 550 - margin.left - margin.right,
       height = 300 - margin.top - margin.bottom;
   var x = d3.scale.linear()
